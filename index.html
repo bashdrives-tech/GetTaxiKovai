@@ -95,17 +95,20 @@
         if(tType === '2') config = { base: 100, rate: 25 }; 
         if(tType === '3') config = { base: 80, rate: 27 }; 
 
-        function speak(text) {
+        function speakTamil(amount) {
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
+            const tamilText = `எங்களுடன் பயணம் செய்தமைக்கு நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் செல்போன் மற்றும் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இனிய நாள் அமையட்டும்!`;
+            
+            const utterance = new SpeechSynthesisUtterance(tamilText);
             const voices = window.speechSynthesis.getVoices();
             
-            // Look for UK English or Google voices for a "sweeter" slang
-            const preferredVoice = voices.find(v => v.lang.includes('en-GB')) || voices.find(v => v.lang.includes('en-IN')) || voices[0];
+            // Specifically look for Tamil voice
+            const tamilVoice = voices.find(v => v.lang.includes('ta-IN')) || voices[0];
             
-            if (preferredVoice) utterance.voice = preferredVoice;
-            utterance.pitch = 1.1; 
-            utterance.rate = 0.9; 
+            if (tamilVoice) utterance.voice = tamilVoice;
+            utterance.lang = 'ta-IN';
+            utterance.pitch = 1.0; 
+            utterance.rate = 0.95; 
             window.speechSynthesis.speak(utterance);
         }
 
@@ -124,7 +127,8 @@
             endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             navigator.geolocation.clearWatch(geoWatch);
             
-            speak(`Thank you for traveling with us. Your total bill is Rupees ${Math.floor(fare)}. Please check for your phone, wallet, and belongings before you get down. Have a wonderful day!`);
+            // TAMIL VOICE ANNOUNCEMENT
+            speakTamil(fare);
 
             document.getElementById('live-meter').style.display = 'none';
             document.getElementById('receipt-view').style.display = 'flex';
