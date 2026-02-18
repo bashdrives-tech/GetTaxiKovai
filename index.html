@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Get Taxi Kovai - Master 1</title>
+    <title>Taxi Meter Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
         :root { --red: #EF4444; --dark-blue: #1E3A8A; --black: #111827; --white: #FFFFFF; --bg-light: #F9FAFB; }
         
         body { font-family: 'Outfit', sans-serif; background-color: var(--white); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        /* Master 1 Header */
         .header { width: 100%; background: var(--white); padding: 25px 0; display: flex; justify-content: center; align-items: center; }
         .header img { height: 60px; width: auto; }
         .separator { width: 100%; height: 4px; display: flex; }
@@ -19,7 +18,6 @@
 
         .meter-area { width: 100%; background-color: var(--bg-light); flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding-top: 25px; }
         
-        /* Master 1 Fare Card */
         .card { background: var(--white); border-radius: 35px; width: 92%; max-width: 420px; padding: 40px 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #F1F3F5; }
         .label { color: #9CA3AF; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
         
@@ -31,7 +29,6 @@
         .val { font-size: 36px; font-weight: 900; color: var(--black); }
         .unit { font-size: 14px; color: #6B7280; font-weight: 700; margin-left: 2px; }
 
-        /* Master 1 Info Boxes */
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 92%; max-width: 420px; margin-top: 15px; }
         .info-box { background: var(--white); border-radius: 22px; padding: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #F1F3F5; }
         .status-text { color: var(--red); font-weight: 900; font-size: 18px; }
@@ -49,7 +46,7 @@
     </style>
 </head>
 <body>
-    <div class="header"><img id="logo-img" src="get-taxi.png" alt="Logo"></div>
+    <div class="header"><img id="logo-img" src="" alt="Logo"></div>
     <div class="separator"><div class="line-blue"></div><div class="line-red"></div></div>
 
     <div id="live-meter" class="meter-area">
@@ -58,12 +55,12 @@
             <div class="fare-val"><span class="currency">₹</span><span id="fare-whole">0</span><span class="decimal">.</span><span id="fare-dec" class="decimal">00</span></div>
             <div class="stats-grid">
                 <div><div class="label">Distance</div><div class="val"><span id="dist">0.00</span><span class="unit">KM</span></div></div>
-                <div><div class="label">Waiting Time</div><div class="val"><span id="wait-display">0:00</span></div></div>
+                <div><div class="label">Waiting</div><div class="val"><span id="wait-display">0:00</span></div></div>
             </div>
         </div>
         <div class="bottom-grid">
             <div class="info-box"><div class="label">Speed</div><div class="speed-text" id="speed">0.0</div></div>
-            <div class="info-box"><div class="label">Status</div><div id="status-label" class="status-text">Premium Ride</div></div>
+            <div class="info-box"><div class="label">Status</div><div id="status-text" class="status-text">Premium Ride</div></div>
         </div>
         <div class="btn-container"><button id="mainBtn" class="btn" onclick="toggleTrip()">Start Trip</button></div>
     </div>
@@ -71,12 +68,13 @@
     <div id="receipt-view">
         <div class="receipt-card">
             <h2 style="text-align: center; margin: 0 0 20px 0;">TRIP RECEIPT</h2>
-            <div class="r-line"><span>Pickup:</span><span id="r-start">--</span></div>
-            <div class="r-line"><span>Drop:</span><span id="r-end">--</span></div>
+            <div class="r-line"><span>Pickup Time:</span><span id="r-start">--</span></div>
+            <div class="r-line"><span>Drop Time:</span><span id="r-end">--</span></div>
             <hr style="border:0; border-top:1px solid #eee; margin: 15px 0;">
-            <div class="r-line"><span>Distance:</span><span id="r-dist">0.00 KM</span></div>
-            <div class="r-line"><span>Wait Time:</span><span id="r-wait">0:00</span></div>
+            <div class="r-line"><span>KM Travelled:</span><span id="r-dist">0.00 KM</span></div>
+            <div class="r-line"><span>Wait Timing:</span><span id="r-wait">0:00</span></div>
             <div class="r-total"><span>Total Bill:</span><span id="r-total">₹0.00</span></div>
+            <p style="text-align:center; color: #EF4444; font-size: 13px; margin-top: 15px; font-weight: 700;">⚠️ இறங்குவதற்கு முன் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும்.</p>
         </div>
         <div class="btn-container" style="position: static;">
             <button class="btn btn-share" onclick="shareTripDetails()">Share Trip Details</button>
@@ -85,86 +83,119 @@
     </div>
 
     <script>
-        let active = false, distance = 0, fare = 0, waitSecs = 0, lastPos, liveInt, startTime, geoWatch;
-        let config = { base: 80, rate: 25 };
+        let active = false, distance = 0, fare = 0, waitSeconds = 0;
+        let geoWatch, lastPos, liveInterval, startTime, endTime;
+        
+        const params = new URLSearchParams(window.location.search);
+        const brand = params.get('brand') || 'get';
+        const tType = params.get('t') || '1';
+        document.getElementById('logo-img').src = brand === 'red' ? "red-taxi.png" : "get-taxi.png";
+        
+        let config = { base: 80, rate: 25 }; 
+        if(tType === '2') config = { base: 100, rate: 25 }; 
+        if(tType === '3') config = { base: 80, rate: 27 }; 
 
         function toggleTrip() {
             if(!active) {
-                const wakeUp = new Audio(); wakeUp.play().catch(() => {});
-                active = true; fare = config.base; 
+                active = true; fare = config.base;
                 startTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 document.getElementById('mainBtn').innerText = "Stop Trip";
                 startTracking();
-                liveInt = setInterval(() => {
-                    if(!lastPos || (lastPos.coords.speed || 0) < 0.6) {
-                        waitSecs++;
-                        // ONLY JUMP ₹2 ON FULL MINUTE (60, 120, 180...)
-                        if(waitSecs > 0 && waitSecs % 60 === 0) { fare += 2; }
-                        document.getElementById('status-label').innerText = "Waiting...";
-                    } else {
-                        document.getElementById('status-label').innerText = "Driving";
-                    }
-                    updateUI();
-                }, 1000);
+                liveInterval = setInterval(updateWaitingLogic, 1000);
             } else { finishTrip(); }
         }
 
-        function finishTrip() {
-            active = false; clearInterval(liveInt);
-            let endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            navigator.geolocation.clearWatch(geoWatch);
+        function updateWaitingLogic() {
+            // Check if car is stopped
+            if (!lastPos || (lastPos.coords.speed || 0) < 0.6) {
+                waitSeconds++;
+                // ONLY JUMP ₹2 AFTER EXACTLY 60 SECONDS
+                if (waitSeconds > 0 && waitSeconds % 60 === 0) {
+                    fare += 2;
+                }
+                document.getElementById('status-text').innerText = "Waiting...";
+            } else {
+                document.getElementById('status-text').innerText = "Driving";
+            }
+            updateUI();
+        }
 
-            let audioS = new Audio('Start.mp3');
-            audioS.play().then(() => {
-                audioS.onended = () => {
-                    let msg = new SpeechSynthesisUtterance(Math.floor(fare) + " Rupees");
-                    msg.lang = 'en-US'; msg.rate = 0.85;
-                    msg.onend = () => { new Audio('end.mp3').play(); };
-                    window.speechSynthesis.speak(msg);
+        function finishTrip() {
+            active = false;
+            clearInterval(liveInterval);
+            endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            navigator.geolocation.clearWatch(geoWatch);
+            
+            // 1. PLAY GREETING
+            let audioStart = new Audio('start.mp3');
+            audioStart.play().catch(e => console.log("Audio play blocked by browser"));
+
+            audioStart.onended = function() {
+                // 2. SPEAK PRICE IN ENGLISH
+                let amountSpeech = new SpeechSynthesisUtterance(Math.floor(fare) + " Rupees");
+                amountSpeech.lang = 'en-IN';
+                amountSpeech.rate = 0.9; 
+                window.speechSynthesis.speak(amountSpeech);
+
+                amountSpeech.onend = function() {
+                    // 3. PLAY BLESSING
+                    let audioEnd = new Audio('end.mp3');
+                    audioEnd.play();
                 };
-            }).catch(() => { alert("Total: ₹" + fare.toFixed(2)); });
+            };
 
             document.getElementById('live-meter').style.display = 'none';
             document.getElementById('receipt-view').style.display = 'flex';
             document.getElementById('r-start').innerText = startTime;
             document.getElementById('r-end').innerText = endTime;
-            document.getElementById('r-dist').innerText = distance.toFixed(2) + " KM";
-            document.getElementById('r-total').innerText = "₹" + fare.toFixed(2);
-            let m = Math.floor(waitSecs/60); let s = waitSecs%60;
+            document.getElementById('r-dist').innerText = distance.toFixed(2) + ' KM';
+            
+            let m = Math.floor(waitSeconds / 60);
+            let s = waitSeconds % 60;
             document.getElementById('r-wait').innerText = m + ":" + (s < 10 ? "0" : "") + s;
+            document.getElementById('r-total').innerText = '₹' + fare.toFixed(2);
         }
 
         function shareTripDetails() {
-            let m = Math.floor(waitSecs/60); let s = waitSecs%60;
+            let m = Math.floor(waitSeconds / 60);
+            let s = waitSeconds % 60;
             let waitStr = m + ":" + (s < 10 ? "0" : "") + s;
-            let msg = `*TRIP RECEIPT*%0A*Pickup:* ${startTime}%0A*Distance:* ${distance.toFixed(2)} KM%0A*Wait:* ${waitStr}%0A*TOTAL: ₹${fare.toFixed(2)}*`;
-            window.open(`https://wa.me/919043743777?text=${msg}`);
+            let msg = `*TRIP DETAILS - COMPLETED*%0A--------------------------%0A*Pickup:* ${startTime}%0A*Drop:* ${endTime}%0A--------------------------%0A*KM Travelled:* ${distance.toFixed(2)} KM%0A*Wait Timing:* ${waitStr}%0A--------------------------%0A*TOTAL BILL: ₹${fare.toFixed(2)}*`;
+            window.open(`https://wa.me/919043743777?text=${msg}`, '_blank');
         }
 
         function startTracking() {
             geoWatch = navigator.geolocation.watchPosition(p => {
                 if(lastPos && (p.coords.speed || 0) >= 0.6) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
-                    if (d > 0.005) { distance += d; fare += (d * config.rate); }
+                    if (d > 0.005) {
+                        distance += d; 
+                        fare += (d * config.rate); // Driving fare increases LIVE
+                    }
                 }
-                lastPos = p; document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
+                lastPos = p;
+                document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
                 updateUI();
             }, null, {enableHighAccuracy: true});
         }
 
         function calcDist(la1, lo1, la2, lo2) {
-            const R = 6371; const dLa = (la2-la1)*Math.PI/180; const dLo = (lo2-lo1)*Math.PI/180;
+            const R = 6371;
+            const dLa = (la2-la1) * Math.PI/180;
+            const dLo = (lo2-lo1) * Math.PI/180;
             const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
         function updateUI() {
-            let p = fare.toFixed(2).split('.');
-            document.getElementById('fare-whole').innerText = p[0];
-            document.getElementById('fare-dec').innerText = p[1];
+            let parts = fare.toFixed(2).split('.');
+            document.getElementById('fare-whole').innerText = parts[0];
+            document.getElementById('fare-dec').innerText = parts[1];
             document.getElementById('dist').innerText = distance.toFixed(2);
-            let m = Math.floor(waitSecs/60); let s = waitSecs%60;
-            document.getElementById('wait-display').innerText = m + ":" + (s < 10 ? "0" : "") + s;
+            
+            let mins = Math.floor(waitSeconds / 60);
+            let secs = waitSeconds % 60;
+            document.getElementById('wait-display').innerText = mins + ":" + (secs < 10 ? "0" : "") + secs;
         }
     </script>
 </body>
