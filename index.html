@@ -3,38 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Taxi Meter</title>
+    <title>Taxi Meter Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        :root { --main-color: #EF4444; --dark-blue: #1E3A8A; --black: #111827; --white: #FFFFFF; --bg-light: #F9FAFB; }
+        :root { --red: #EF4444; --dark-blue: #1E3A8A; --black: #111827; --white: #FFFFFF; --bg-light: #F9FAFB; }
+        
         body { font-family: 'Outfit', sans-serif; background-color: var(--white); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .header { width: 100%; background: var(--white); padding: 25px 0; display: flex; flex-direction: column; align-items: center; }
-        .header img { height: 60px; width: auto; margin-bottom: 10px; }
-        .tariff-badge { background: var(--black); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .header { width: 100%; background: var(--white); padding: 25px 0; display: flex; justify-content: center; align-items: center; }
+        .header img { height: 60px; width: auto; }
         .separator { width: 100%; height: 4px; display: flex; }
         .line-blue { width: 50%; background-color: var(--dark-blue); }
-        .line-red { width: 50%; background-color: var(--main-color); }
+        .line-red { width: 50%; background-color: var(--red); }
+
         .meter-area { width: 100%; background-color: var(--bg-light); flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding-top: 25px; }
+        
         .card { background: var(--white); border-radius: 35px; width: 92%; max-width: 420px; padding: 40px 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #F1F3F5; }
         .label { color: #9CA3AF; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+        
         .fare-val { font-size: 100px; font-weight: 900; color: var(--black); margin: 5px 0; line-height: 1; letter-spacing: -3px; }
-        .currency { color: var(--main-color); font-size: 45px; vertical-align: middle; margin-right: 5px; }
+        .currency { color: var(--red); font-size: 45px; vertical-align: middle; margin-right: 5px; }
         .decimal { font-size: 55px; color: #9CA3AF; }
+
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; border-top: 1px solid #F3F4F6; padding-top: 30px; }
-        .val { font-size: 32px; font-weight: 900; color: var(--black); }
+        .val { font-size: 36px; font-weight: 900; color: var(--black); }
         .unit { font-size: 14px; color: #6B7280; font-weight: 700; margin-left: 2px; }
+
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 92%; max-width: 420px; margin-top: 15px; }
         .info-box { background: var(--white); border-radius: 22px; padding: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #F1F3F5; }
-        .status-text { color: var(--main-color); font-weight: 900; font-size: 18px; }
+        .status-text { color: var(--red); font-weight: 900; font-size: 18px; }
+        .speed-text { font-size: 28px; font-weight: 900; color: var(--black); }
+
+        #receipt-view { display: none; width: 100%; flex-direction: column; align-items: center; padding-top: 20px; background: var(--bg-light); flex-grow: 1; }
+        .receipt-card { background: white; width: 85%; padding: 30px; border-radius: 25px; border: 2px dashed #D1D5DB; margin-bottom: 20px; }
+        .r-line { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 17px; color: #4B5563; }
+        .r-total { border-top: 2px solid var(--black); margin-top: 15px; padding-top: 15px; font-weight: 900; font-size: 26px; color: var(--red); display: flex; justify-content: space-between; }
+
         .btn-container { width: 100%; position: fixed; bottom: 35px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .btn { width: 92%; max-width: 420px; padding: 22px; border-radius: 22px; border: none; font-size: 20px; font-weight: 900; color: var(--white); background: var(--main-color); text-transform: uppercase; cursor: pointer; }
+        .btn { width: 92%; max-width: 420px; padding: 22px; border-radius: 22px; border: none; font-size: 20px; font-weight: 900; color: var(--white); background: var(--red); text-transform: uppercase; cursor: pointer; }
+        .btn-share { background: #25D366; }
+        .btn-reset { background: var(--black); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img id="logo-img" src="" alt="Logo">
-        <div id="tariff-name" class="tariff-badge">Loading...</div>
-    </div>
+    <div class="header"><img id="logo-img" src="" alt="Logo"></div>
     <div class="separator"><div class="line-blue"></div><div class="line-red"></div></div>
 
     <div id="live-meter" class="meter-area">
@@ -47,43 +59,56 @@
             </div>
         </div>
         <div class="bottom-grid">
-            <div class="info-box"><div class="label">Speed</div><div id="speed" style="font-size:28px; font-weight:900;">0.0</div></div>
-            <div class="info-box"><div class="label">Status</div><div id="status-label" class="status-text">Premium</div></div>
+            <div class="info-box"><div class="label">Speed</div><div class="speed-text" id="speed">0.0</div></div>
+            <div class="info-box"><div class="label">Status</div><div id="status-label" class="status-text">Premium Ride</div></div>
         </div>
         <div class="btn-container"><button id="mainBtn" class="btn" onclick="toggleTrip()">Start Trip</button></div>
     </div>
 
+    <div id="receipt-view">
+        <div class="receipt-card">
+            <h2 style="text-align: center; margin: 0 0 20px 0;">TRIP RECEIPT</h2>
+            <div class="r-line"><span>Pickup Time:</span><span id="r-start">--</span></div>
+            <div class="r-line"><span>Drop Time:</span><span id="r-end">--</span></div>
+            <hr style="border:0; border-top:1px solid #eee; margin: 15px 0;">
+            <div class="r-line"><span>KM Travelled:</span><span id="r-dist">0.00 KM</span></div>
+            <div class="r-line"><span>Wait Timing:</span><span id="r-wait">0:00</span></div>
+            <div class="r-total"><span>Total Bill:</span><span id="r-total">₹0.00</span></div>
+            <p style="text-align:center; color: #EF4444; font-size: 13px; margin-top: 15px; font-weight: 700;">⚠️ இறங்குவதற்கு முன் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும்.</p>
+        </div>
+        <div class="btn-container" style="position: static;">
+            <button class="btn btn-share" onclick="shareTripDetails()">Share Trip Details</button>
+            <button class="btn btn-reset" onclick="location.reload()">New Trip</button>
+        </div>
+    </div>
+
     <script>
-        let active = false, distance = 0, fare = 0, waitSeconds = 0, geoWatch, lastPos, liveInterval;
+        let active = false, distance = 0, fare = 0, waitSeconds = 0;
+        let geoWatch, lastPos, liveInterval, startTime, endTime;
         
         const params = new URLSearchParams(window.location.search);
         const brand = params.get('brand') || 'get';
         const tType = params.get('t') || '1';
-
         document.getElementById('logo-img').src = brand === 'red' ? "red-taxi.png" : "get-taxi.png";
-        if (brand === 'get') { document.documentElement.style.setProperty('--main-color', '#1E3A8A'); }
-
-        let config = { base: 80, rate: 25 };
-        if (tType === '2') config = { base: 100, rate: 25 };
-        if (tType === '3') config = { base: 80, rate: 27 };
-
-        document.getElementById('tariff-name').innerText = (brand === 'red' ? "Red Taxi " : "Get Taxi ") + (tType === '1' ? "80/25" : tType === '2' ? "100/25" : "80/27");
+        
+        let config = { base: 80, rate: 25 }; 
+        if(tType === '2') config = { base: 100, rate: 25 }; 
+        if(tType === '3') config = { base: 80, rate: 27 }; 
 
         function toggleTrip() {
             if(!active) {
                 active = true; fare = config.base; 
+                startTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 document.getElementById('mainBtn').innerText = "Stop Trip";
                 startTracking();
-                // Tick every second for "Tak Tak Tak" effect
                 liveInterval = setInterval(updateLiveWaiting, 1000);
             } else { finishTrip(); }
         }
 
         function updateLiveWaiting() {
-            // Check if speed is low or car hasn't moved
             if (!lastPos || (lastPos.coords.speed || 0) < 0.6) {
                 waitSeconds++;
-                fare += (2 / 60); // ₹2 per minute divided by 60 seconds
+                fare += (2 / 60); 
                 document.getElementById('status-label').innerText = "Waiting...";
             } else {
                 document.getElementById('status-label').innerText = "Driving";
@@ -94,6 +119,7 @@
         function finishTrip() {
             active = false;
             clearInterval(liveInterval);
+            endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             navigator.geolocation.clearWatch(geoWatch);
             
             let audioStart = new Audio('Start.mp3'); 
@@ -105,8 +131,25 @@
                 window.speechSynthesis.speak(amountSpeech);
                 amountSpeech.onend = function() { new Audio('end.mp3').play(); };
             };
-            alert("Trip Finished. Total: ₹" + fare.toFixed(2));
-            location.reload();
+
+            document.getElementById('live-meter').style.display = 'none';
+            document.getElementById('receipt-view').style.display = 'flex';
+            document.getElementById('r-start').innerText = startTime;
+            document.getElementById('r-end').innerText = endTime;
+            document.getElementById('r-dist').innerText = distance.toFixed(2) + ' KM';
+            
+            let mins = Math.floor(waitSeconds / 60);
+            let secs = waitSeconds % 60;
+            document.getElementById('r-wait').innerText = mins + ":" + (secs < 10 ? "0" : "") + secs;
+            document.getElementById('r-total').innerText = '₹' + fare.toFixed(2);
+        }
+
+        function shareTripDetails() {
+            let mins = Math.floor(waitSeconds / 60);
+            let secs = waitSeconds % 60;
+            let waitTimeStr = mins + ":" + (secs < 10 ? "0" : "") + secs;
+            let msg = `*TRIP DETAILS*%0A*Pickup:* ${startTime}%0A*Drop:* ${endTime}%0A*KM:* ${distance.toFixed(2)}%0A*Wait:* ${waitTimeStr}%0A*TOTAL: ₹${fare.toFixed(2)}*`;
+            window.open(`https://wa.me/919043743777?text=${msg}`, '_blank');
         }
 
         function startTracking() {
@@ -136,8 +179,6 @@
             document.getElementById('fare-whole').innerText = parts[0];
             document.getElementById('fare-dec').innerText = parts[1];
             document.getElementById('dist').innerText = distance.toFixed(2);
-            
-            // Format seconds into M:SS
             let mins = Math.floor(waitSeconds / 60);
             let secs = waitSeconds % 60;
             document.getElementById('wait-display').innerText = mins + ":" + (secs < 10 ? "0" : "") + secs;
