@@ -10,6 +10,7 @@
         
         body { font-family: 'Outfit', sans-serif; background-color: var(--white); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
+        /* LAYOUT REMAINS EXACTLY AS MASTER 1 */
         .header { width: 100%; background: var(--white); padding: 25px 0; display: flex; justify-content: center; align-items: center; }
         .header img { height: 60px; width: auto; }
         .separator { width: 100%; height: 4px; display: flex; }
@@ -74,7 +75,7 @@
             <div class="r-line"><span>KM Travelled:</span><span id="r-dist">0.00 KM</span></div>
             <div class="r-line"><span>Wait Timing:</span><span id="r-wait">0 MIN</span></div>
             <div class="r-total"><span>Total Bill:</span><span id="r-total">₹0.00</span></div>
-            <p style="text-align:center; color: #EF4444; font-size: 13px; margin-top: 15px; font-weight: 700;">⚠️ Please check for your belongings.</p>
+            <p style="text-align:center; color: #EF4444; font-size: 13px; margin-top: 15px; font-weight: 700;">⚠️ இறங்குவதற்கு முன் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும்.</p>
         </div>
         <div class="btn-container" style="position: static;">
             <button class="btn btn-share" onclick="shareTripDetails()">Share Trip Details</button>
@@ -95,21 +96,38 @@
         if(tType === '2') config = { base: 100, rate: 25 }; 
         if(tType === '3') config = { base: 80, rate: 27 }; 
 
+        // THE NATURAL GOOGLE CLOUD VOICE LOGIC
         function speakTamil(amount) {
             window.speechSynthesis.cancel();
-            const tamilText = `எங்களுடன் பயணம் செய்தமைக்கு நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் செல்போன் மற்றும் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இனிய நாள் அமையட்டும்!`;
             
-            const utterance = new SpeechSynthesisUtterance(tamilText);
-            const voices = window.speechSynthesis.getVoices();
-            
-            // Specifically look for Tamil voice
-            const tamilVoice = voices.find(v => v.lang.includes('ta-IN')) || voices[0];
-            
-            if (tamilVoice) utterance.voice = tamilVoice;
-            utterance.lang = 'ta-IN';
-            utterance.pitch = 1.0; 
-            utterance.rate = 0.95; 
-            window.speechSynthesis.speak(utterance);
+            // PLAYING THE DIGITAL 'TING' CHIME
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            osc.connect(gain);
+            gain.connect(context.destination);
+            osc.frequency.value = 880; // High quality chime freq
+            gain.gain.setValueAtTime(0, context.currentTime);
+            gain.gain.linearRampToValueAtTime(0.1, context.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.5);
+            osc.start();
+            osc.stop(context.currentTime + 0.5);
+
+            setTimeout(() => {
+                const tamilText = `நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் செல்போன் மற்றும் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இந்த நாள் இனிய நாளாக அமையட்டும்!`;
+                const utterance = new SpeechSynthesisUtterance(tamilText);
+                const voices = window.speechSynthesis.getVoices();
+
+                // Search for the high-quality Google Natural Voice
+                const naturalVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('ta')) || 
+                                   voices.find(v => v.lang.includes('ta')) || voices[0];
+
+                utterance.voice = naturalVoice;
+                utterance.lang = 'ta-IN';
+                utterance.pitch = 1.05; 
+                utterance.rate = 0.92; // Slightly slower for warmth
+                window.speechSynthesis.speak(utterance);
+            }, 600); // Small delay after the chime
         }
 
         function toggleTrip() {
@@ -127,7 +145,6 @@
             endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             navigator.geolocation.clearWatch(geoWatch);
             
-            // TAMIL VOICE ANNOUNCEMENT
             speakTamil(fare);
 
             document.getElementById('live-meter').style.display = 'none';
