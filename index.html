@@ -95,40 +95,6 @@
         if(tType === '2') config = { base: 100, rate: 25 }; 
         if(tType === '3') config = { base: 80, rate: 27 }; 
 
-        function speakTamil(amount) {
-            window.speechSynthesis.cancel();
-            
-            // DIGITAL CHIME
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = context.createOscillator();
-            const gain = context.createGain();
-            osc.connect(gain);
-            gain.connect(context.destination);
-            osc.frequency.value = 880;
-            gain.gain.setValueAtTime(0, context.currentTime);
-            gain.gain.linearRampToValueAtTime(0.1, context.currentTime + 0.01);
-            gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.5);
-            osc.start();
-            osc.stop(context.currentTime + 0.5);
-
-            setTimeout(() => {
-                const tamilText = `நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இந்த நாள் இனிய நாளாக அமையட்டும்!`;
-                const utterance = new SpeechSynthesisUtterance(tamilText);
-                const voices = window.speechSynthesis.getVoices();
-
-                // STRICT SEARCH FOR GOOGLE NATURAL VOICE
-                const naturalVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('ta')) || 
-                                   voices.find(v => v.name.includes('Natural') && v.lang.includes('ta')) ||
-                                   voices.find(v => v.lang.includes('ta')) || voices[0];
-
-                utterance.voice = naturalVoice;
-                utterance.lang = 'ta-IN';
-                utterance.pitch = 1.0; 
-                utterance.rate = 0.85; // Keeping it slow as you liked
-                window.speechSynthesis.speak(utterance);
-            }, 700);
-        }
-
         function toggleTrip() {
             if(!active) {
                 active = true; fare = config.base; lastTime = Date.now();
@@ -143,11 +109,26 @@
             endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             navigator.geolocation.clearWatch(geoWatch);
             
-            speakTamil(fare);
+            // 1. PLAY GREETING
+            let audioStart = new Audio('start.mp3');
+            audioStart.play();
+
+            audioStart.onended = function() {
+                // 2. SPEAK PRICE IN ENGLISH
+                let amountSpeech = new SpeechSynthesisUtterance(Math.floor(fare) + " Rupees");
+                amountSpeech.lang = 'en-IN';
+                amountSpeech.rate = 0.9; 
+                window.speechSynthesis.speak(amountSpeech);
+
+                amountSpeech.onend = function() {
+                    // 3. PLAY BLESSING
+                    let audioEnd = new Audio('end.mp3');
+                    audioEnd.play();
+                };
+            };
 
             document.getElementById('live-meter').style.display = 'none';
             document.getElementById('receipt-view').style.display = 'flex';
-            
             document.getElementById('r-start').innerText = startTime;
             document.getElementById('r-end').innerText = endTime;
             document.getElementById('r-dist').innerText = distance.toFixed(2) + ' KM';
@@ -165,22 +146,17 @@
                 let now = Date.now();
                 if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
-                    let elapsedMins = (now - lastTime) / 60000;
-
-                    if (p.coords.speed < 0.5 || d < 0.005) {
-                        // ACCURATE WAITING: Only add if standing still
-                        waitMins += elapsedMins;
-                        fare += (elapsedMins * 2); 
+                    let elapsed = (now - lastTime) / 60000;
+                    if (p.coords.speed < 0.6 || d < 0.003) {
+                        waitMins += elapsed; fare += (elapsed * 2); 
                     } else if (d > 0.01) {
-                        // MOVING: Add distance fare
-                        distance += d;
-                        fare += (d * config.rate);
+                        distance += d; fare += (d * config.rate);
                     }
                 }
                 lastPos = p; lastTime = now;
                 document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
                 updateUI();
-            }, null, {enableHighAccuracy: true, maximumAge: 1000});
+            }, null, {enableHighAccuracy: true});
         }
 
         function calcDist(la1, lo1, la2, lo2) {
@@ -198,8 +174,6 @@
             document.getElementById('dist').innerText = distance.toFixed(2);
             document.getElementById('wait').innerText = Math.floor(waitMins);
         }
-        
-        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
     </script>
 </body>
 </html>
