@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Meter Pro - Coimbatore</title>
+    <title>Taxi Meter Pro</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
 
-        :root { --red: #EF4444; --white: #FFFFFF; }
+        :root { --red: #EF4444; --white: #FFFFFF; --text-gray: #6B7280; }
         
         body { 
-            font-family: 'Rajdhani', sans-serif; 
+            font-family: 'Inter', sans-serif; 
             background-color: var(--red); 
             margin: 0; 
             padding: 0; 
@@ -20,16 +20,15 @@
             min-height: 100vh;
         }
         
-        /* WHITE HEADER BOX FOR LOGO */
+        /* SOLID RED HEADER */
         .header { 
             width: 100%; 
-            background: var(--white); 
-            padding: 12px 0; 
+            background: var(--red); 
+            padding: 15px 0; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
-            margin-bottom: 25px;
+            margin-bottom: 5px;
         }
         
         .header img {
@@ -38,46 +37,45 @@
             object-fit: contain;
         }
 
-        /* MAIN METER CARD */
         .card { 
             background: var(--white); 
-            border-radius: 28px; 
-            width: 92%; 
+            border-radius: 30px; 
+            width: 90%; 
             max-width: 400px; 
-            padding: 35px 20px; 
+            padding: 40px 20px; 
             text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25); 
             box-sizing: border-box;
+            margin-top: 10px;
         }
         
-        .label { color: #9CA3AF; font-size: 13px; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; }
-        .fare-val { font-family: 'Orbitron', sans-serif; font-size: 90px; color: var(--red); margin: 15px 0; line-height: 1; display: flex; justify-content: center; align-items: flex-start; }
-        .currency { font-size: 38px; margin-top: 12px; margin-right: 4px; }
+        .label { color: #9CA3AF; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px; }
+        .fare-val { font-size: 90px; font-weight: 800; color: #111827; margin: 10px 0; line-height: 1; }
+        .currency { color: var(--red); font-size: 40px; vertical-align: middle; margin-right: 5px; font-weight: 400; }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; border-top: 1px solid #F3F4F6; padding-top: 25px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; border-top: 1px solid #F3F4F6; padding-top: 30px; }
         .val { font-size: 32px; font-weight: 800; color: #111827; }
-        .unit { font-size: 14px; color: #6B7280; font-weight: 600; margin-left: 4px; }
+        .unit { font-size: 14px; color: var(--text-gray); font-weight: 600; margin-left: 2px; }
 
-        /* SPEED AND TARIFF BOXES */
-        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 92%; max-width: 400px; margin-top: 15px; }
-        .info-box { background: var(--white); border-radius: 18px; padding: 18px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; margin-top: 15px; }
+        .info-box { background: var(--white); border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .val-text { font-size: 24px; font-weight: 800; color: #111827; }
+        .tariff-name { color: var(--red); font-weight: 800; font-size: 20px; }
 
-        /* START/STOP BUTTON */
         .btn-container { width: 100%; position: fixed; bottom: 30px; display: flex; justify-content: center; }
         .btn { 
-            width: 92%; 
+            width: 90%; 
             max-width: 400px; 
             padding: 20px; 
-            border-radius: 16px; 
-            border: 2px solid var(--white); 
+            border-radius: 20px; 
+            border: none; 
             font-size: 18px; 
-            font-weight: bold; 
+            font-weight: 800; 
             color: var(--red); 
             background: var(--white);
             text-transform: uppercase; 
             cursor: pointer; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
         }
     </style>
 </head>
@@ -98,7 +96,7 @@
 
     <div class="bottom-grid">
         <div class="info-box"><div class="label">Speed</div><div class="val-text" id="speed">0.0 <span style="font-size: 12px; color: #6B7280;">km/h</span></div></div>
-        <div class="info-box"><div class="label">Tariff</div><div id="tariff-name" style="color:var(--red); font-weight:bold; font-size:18px;">Local</div></div>
+        <div class="info-box"><div class="label">Status</div><div id="tariff-display" class="tariff-name">Premium Ride</div></div>
     </div>
 
     <div class="btn-container"><button id="mainBtn" class="btn" onclick="toggleTrip()">Start Trip</button></div>
@@ -111,19 +109,17 @@
         const brand = params.get('brand') || 'get';
         const tType = params.get('t') || '1';
 
-        // LOGO SELECTION LOGIC
         const logoImg = document.getElementById('logo-img');
         if(brand === 'red') {
-            logoImg.src = "red-taxi.png"; 
+            logoImg.src = "1000654314.png"; 
         } else {
-            logoImg.src = "get-taxi.png"; 
+            logoImg.src = "1000654313.png"; 
         }
 
-        // TARIFF SELECTION LOGIC
-        let config = { base: 80, rate: 25, label: "80 + 25" };
-        if(tType === '2') config = { base: 100, rate: 25, label: "100 + 25" };
-        if(tType === '3') config = { base: 80, rate: 27, label: "80 + 27" };
-        document.getElementById('tariff-name').innerText = config.label;
+        // HIDDEN PRICING LOGIC
+        let config = { base: 80, rate: 25 }; // Standard
+        if(tType === '2') config = { base: 100, rate: 25 }; // Premium
+        if(tType === '3') config = { base: 80, rate: 27 }; // Peak
 
         function toggleTrip() {
             if(!active) {
@@ -149,7 +145,7 @@
             waitTimer = setInterval(() => {
                 if(lastPos && (lastPos.coords.speed < 0.3 || lastPos.coords.speed === null)) {
                     waitSecs++;
-                    fare += (2 / 60); // ₹2 per minute
+                    fare += (2 / 60); 
                     updateUI();
                 }
             }, 1000);
