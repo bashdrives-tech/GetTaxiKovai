@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taxi Meter Pro</title>
     <style>
-        /* Premium thick fonts for numbers and text */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        /* Modern, rounded font for numbers and text */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
 
         :root { 
             --red: #EF4444; 
@@ -16,7 +16,7 @@
         }
         
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Outfit', sans-serif; 
             background-color: var(--white); 
             margin: 0; 
             padding: 0; 
@@ -30,28 +30,23 @@
         .header { 
             width: 100%; 
             background: var(--white); 
-            padding: 25px 0; 
+            padding: 20px 0; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
         }
         
         .header img {
-            height: 60px;
+            height: 55px;
             width: auto;
             object-fit: contain;
         }
 
-        /* THE TWO-COLOR SEPARATOR LINE (DARK BLUE & RED) */
-        .separator {
-            width: 100%;
-            height: 4px;
-            display: flex;
-        }
+        /* SEPARATOR LINE */
+        .separator { width: 100%; height: 4px; display: flex; }
         .line-blue { width: 50%; background-color: var(--dark-blue); }
         .line-red { width: 50%; background-color: var(--red); }
 
-        /* METER CONTENT AREA */
         .meter-area {
             width: 100%;
             background-color: var(--bg-light);
@@ -59,13 +54,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 30px;
+            padding-top: 25px;
         }
 
         .card { 
             background: var(--white); 
-            border-radius: 30px; 
-            width: 90%; 
+            border-radius: 35px; 
+            width: 92%; 
             max-width: 420px; 
             padding: 40px 20px; 
             text-align: center; 
@@ -74,28 +69,26 @@
             border: 1px solid #F1F3F5;
         }
         
-        .label { color: #9CA3AF; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
-        
-        /* Thick, Bold Number Font */
-        .fare-val { font-size: 100px; font-weight: 900; color: #111827; margin: 10px 0; line-height: 1; letter-spacing: -3px; }
-        .currency { color: var(--red); font-size: 45px; vertical-align: middle; margin-right: 5px; font-weight: 400; }
+        /* ALL TEXT IN RED */
+        .label { color: var(--red); font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; opacity: 0.8; }
+        .fare-val { font-size: 110px; font-weight: 900; color: var(--red); margin: 5px 0; line-height: 1; letter-spacing: -3px; }
+        .currency { font-size: 45px; vertical-align: middle; margin-right: 5px; font-weight: 400; }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; border-top: 1px solid #F3F4F6; padding-top: 30px; }
-        .val { font-size: 34px; font-weight: 900; color: #111827; }
-        .unit { font-size: 14px; color: #6B7280; font-weight: 700; margin-left: 2px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; border-top: 1px solid #FEE2E2; padding-top: 30px; }
+        .val { font-size: 36px; font-weight: 900; color: var(--red); }
+        .unit { font-size: 14px; color: var(--red); font-weight: 700; margin-left: 2px; opacity: 0.7; }
 
-        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 420px; margin-top: 15px; }
-        .info-box { background: var(--white); border-radius: 20px; padding: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #F1F3F5; }
-        .val-text { font-size: 26px; font-weight: 900; color: #111827; }
-        .status-text { color: var(--red); font-weight: 900; font-size: 20px; }
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 92%; max-width: 420px; margin-top: 15px; }
+        .info-box { background: var(--white); border-radius: 22px; padding: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #F1F3F5; }
+        .val-text { font-size: 28px; font-weight: 900; color: var(--red); }
 
-        /* FOOTER BUTTON */
+        /* RED STOP BUTTON */
         .btn-container { width: 100%; position: fixed; bottom: 30px; display: flex; justify-content: center; }
         .btn { 
-            width: 90%; 
+            width: 92%; 
             max-width: 420px; 
             padding: 22px; 
-            border-radius: 20px; 
+            border-radius: 22px; 
             border: none; 
             font-size: 20px; 
             font-weight: 900; 
@@ -104,6 +97,7 @@
             text-transform: uppercase; 
             cursor: pointer; 
             box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); 
+            transition: 0.3s;
         }
     </style>
 </head>
@@ -130,7 +124,7 @@
 
         <div class="bottom-grid">
             <div class="info-box"><div class="label">Speed</div><div class="val-text" id="speed">0.0</div></div>
-            <div class="info-box"><div class="label">Status</div><div class="status-text">Premium Ride</div></div>
+            <div class="info-box"><div class="label">Status</div><div class="val-text" style="font-size: 18px;">Premium Ride</div></div>
         </div>
     </div>
 
@@ -144,7 +138,6 @@
         const brand = params.get('brand') || 'get';
         const tType = params.get('t') || '1';
 
-        // Correct filenames from your GitHub
         document.getElementById('logo-img').src = brand === 'red' ? "red-taxi.png" : "get-taxi.png";
 
         let config = { base: 80, rate: 25 }; 
@@ -157,7 +150,7 @@
                 fare = config.base;
                 lastTime = Date.now();
                 document.getElementById('mainBtn').innerText = "Stop Trip";
-                document.getElementById('mainBtn').style.background = "#111827"; // Dark button when active
+                document.getElementById('mainBtn').style.background = "#D32F2F"; // Darker red for Stop
                 startTracking();
             } else { location.reload(); }
         }
@@ -166,12 +159,10 @@
             watchID = navigator.geolocation.watchPosition(p => {
                 let now = Date.now();
                 let elapsed = (now - lastTime) / 60000;
-                
                 if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
                     distance += d;
                     fare += (d * config.rate);
-                    
                     if(p.coords.speed < 0.3 || p.coords.speed === null) {
                         waitMins += elapsed;
                         fare += (elapsed * 2); 
