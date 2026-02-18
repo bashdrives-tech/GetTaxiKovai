@@ -93,6 +93,7 @@
         function updateLiveWaiting() {
             if (!lastPos || (lastPos.coords.speed || 0) < 0.6) {
                 waitSeconds++;
+                // ONLY JUMP ₹2 AFTER 60 SECONDS COMPLETE
                 if (waitSeconds > 0 && waitSeconds % 60 === 0) { fare += 2; }
                 document.getElementById('status-label').innerText = "Waiting...";
             } else { document.getElementById('status-label').innerText = "Driving"; }
