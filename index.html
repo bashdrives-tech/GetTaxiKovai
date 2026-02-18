@@ -7,35 +7,23 @@
     <style>
         :root { --red: #D32F2F; --white: #FFFFFF; --black: #1A1A1A; }
         body { font-family: 'Arial Black', sans-serif; background: var(--white); margin: 0; padding: 0; }
-        
-        /* Dynamic Header Branding */
-        .hero { padding: 30px 10px; text-align: center; border-bottom: 8px solid var(--red); transition: 0.3s; }
+        .hero { padding: 30px 10px; text-align: center; border-bottom: 8px solid var(--red); }
         .hero h1 { margin: 0; font-size: 38px; text-transform: uppercase; letter-spacing: 2px; }
-        
-        /* Get Taxi Theme */
         .theme-get { background: var(--black); color: var(--white); }
         .theme-get span { color: var(--red); }
-        
-        /* Red Taxi Theme */
         .theme-red { background: var(--red); color: var(--white); border-bottom: 8px solid var(--black); }
-        .theme-red span { color: var(--white); }
-
         .container { padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .tariff-tag { background: var(--red); color: white; padding: 8px 20px; border-radius: 50px; font-size: 14px; font-weight: bold; margin-top: -20px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        
         .meter-box { background: #fdfdfd; border: 4px solid var(--black); border-radius: 25px; width: 100%; max-width: 400px; padding: 40px 20px; text-align: center; margin-top: 10px; box-sizing: border-box; }
         #fare { font-size: 90px; color: var(--red); font-weight: bold; margin: 10px 0; }
-        
         .stats { display: flex; justify-content: space-around; border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; }
         .stat-item { font-size: 18px; color: #555; }
         .stat-item span { display: block; font-size: 24px; color: var(--black); font-weight: bold; }
-
-        .btn { width: 100%; max-width: 400px; padding: 20px; font-size: 22px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
-        .btn-start { background: var(--red); color: white; box-shadow: 0 5px 15px rgba(211,47,47,0.4); }
+        .btn { width: 100%; max-width: 400px; padding: 20px; font-size: 20px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; margin-top: 15px; }
+        .btn-start { background: var(--red); color: white; }
         .btn-stop { background: white; color: var(--red); border: 4px solid var(--red); }
-        
-        #receipt { display: none; margin-top: 20px; width: 100%; max-width: 400px; text-align: center; }
-        #qr-box { width: 200px; height: 200px; border: 2px dashed var(--red); margin: 15px auto; display: flex; align-items: center; justify-content: center; }
+        .btn-share { background: #25D366; color: white; display: none; } /* WhatsApp Green */
+        #receipt { display: none; width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
@@ -48,9 +36,8 @@
         <div id="tariff-label" class="tariff-tag">TARIFF LOADING...</div>
         
         <div class="meter-box">
-            <div style="font-weight: bold; color: #888; letter-spacing: 1px;">TOTAL FARE (₹)</div>
+            <div style="font-weight: bold; color: #888;">TOTAL FARE (₹)</div>
             <div id="fare">0</div>
-            
             <div class="stats">
                 <div class="stat-item">KM<span id="dist">0.00</span></div>
                 <div class="stat-item">WAIT<span id="wait">0m 0s</span></div>
@@ -60,9 +47,8 @@
         <button id="mainBtn" class="btn btn-start" onclick="toggleTrip()">Start Trip</button>
         
         <div id="receipt">
-            <button class="btn btn-stop" onclick="window.location.reload()">Clear / New Trip</button>
-            <div id="qr-box">UPLOAD QR IN SETTINGS</div>
-            <p style="font-weight: bold; color: var(--red);">SCAN TO PAY</p>
+            <button class="btn btn-share" id="shareBtn" onclick="shareReceipt()">Share to WhatsApp / Telegram</button>
+            <button class="btn btn-stop" onclick="window.location.reload()">New Trip</button>
         </div>
     </div>
 
@@ -71,22 +57,19 @@
         let distance = 0, waitSec = 0, fare = 0;
         let watchID, waitTimer, lastPos;
 
-        // --- THE MAGIC LOGIC FOR 2 BRANDS & 3 TARIFFS ---
         const params = new URLSearchParams(window.location.search);
-        const brand = params.get('brand') || 'get'; // 'get' or 'red'
-        const tType = params.get('t') || '1'; // '1', '2', or '3'
+        const brand = params.get('brand') || 'get';
+        const tType = params.get('t') || '1';
 
-        // Set Brand
         if(brand === 'red') {
             document.getElementById('brand-header').className = "hero theme-red";
             document.getElementById('brand-name').innerHTML = "RED <span>TAXI</span>";
         }
 
-        // Set Tariff
         let config = { base: 80, rate: 25, label: "LOCAL A" };
         if(tType === '2') config = { base: 100, rate: 25, label: "LOCAL B" };
         if(tType === '3') config = { base: 80, rate: 27, label: "OUTSTATION" };
-        document.getElementById('tariff-label').innerText = config.label + " (₹" + config.base + " + ₹" + config.rate + "/km)";
+        document.getElementById('tariff-label').innerText = config.label;
 
         function toggleTrip() {
             if(!isActive) {
@@ -114,7 +97,7 @@
             waitTimer = setInterval(() => {
                 if(lastPos && (lastPos.coords.speed < 0.3 || lastPos.coords.speed === null)) {
                     waitSec++;
-                    fare += (2 / 60); // ₹2 per min logic
+                    fare += (2 / 60); 
                     updateDisplay();
                 }
             }, 1000);
@@ -125,6 +108,7 @@
             clearInterval(waitTimer);
             document.getElementById('mainBtn').style.display = "none";
             document.getElementById('receipt').style.display = "block";
+            document.getElementById('shareBtn').style.display = "block";
         }
 
         function getDistance(lat1, lon1, lat2, lon2) {
@@ -140,7 +124,22 @@
             document.getElementById('dist').innerText = distance.toFixed(2);
             document.getElementById('wait').innerText = Math.floor(waitSec/60) + "m " + (waitSec%60) + "s";
         }
+
+        function shareReceipt() {
+            const brandTitle = brand === 'red' ? 'RED TAXI' : 'GET TAXI KOVAI';
+            const msg = `*${brandTitle} RECEIPT*%0A---------------------------%0A*Tariff:* ${config.label}%0A*Distance:* ${distance.toFixed(2)} KM%0A*Waiting:* ${Math.floor(waitSec/60)}m ${waitSec%60}s%0A---------------------------%0A*TOTAL FARE: ₹${Math.floor(fare)}*%0A---------------------------%0A_Thank you for riding with us!_`;
+            
+            // This opens the share menu on mobile
+            if (navigator.share) {
+                navigator.share({
+                    title: brandTitle + ' Receipt',
+                    text: msg.replace(/%0A/g, '\n'), // Convert encoded breaks back to newlines for system share
+                });
+            } else {
+                // Fallback to WhatsApp Web/App if system share is not supported
+                window.open(`https://wa.me/?text=${msg}`, '_blank');
+            }
+        }
     </script>
 </body>
 </html>
-
