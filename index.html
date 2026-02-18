@@ -77,7 +77,7 @@
             <p style="text-align:center; color: #EF4444; font-size: 13px; margin-top: 15px; font-weight: 700;">⚠️ Please check for your belongings.</p>
         </div>
         <div class="btn-container" style="position: static;">
-            <button class="btn btn-share" onclick="shareToOwner()">Report to Owner</button>
+            <button class="btn btn-share" onclick="shareTripDetails()">Share Trip Details</button>
             <button class="btn btn-reset" onclick="location.reload()">New Trip</button>
         </div>
     </div>
@@ -100,11 +100,11 @@
             const utterance = new SpeechSynthesisUtterance(text);
             const voices = window.speechSynthesis.getVoices();
             
-            // Try to find a younger/female voice module
-            const preferredVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Zira')) || voices[0];
+            // Look for UK English or Google voices for a "sweeter" slang
+            const preferredVoice = voices.find(v => v.lang.includes('en-GB')) || voices.find(v => v.lang.includes('en-IN')) || voices[0];
             
             if (preferredVoice) utterance.voice = preferredVoice;
-            utterance.pitch = 1.1; // Slightly higher/sweeter pitch
+            utterance.pitch = 1.1; 
             utterance.rate = 0.9; 
             window.speechSynthesis.speak(utterance);
         }
@@ -128,6 +128,7 @@
 
             document.getElementById('live-meter').style.display = 'none';
             document.getElementById('receipt-view').style.display = 'flex';
+            
             document.getElementById('r-start').innerText = startTime;
             document.getElementById('r-end').innerText = endTime;
             document.getElementById('r-dist').innerText = distance.toFixed(2) + ' KM';
@@ -135,8 +136,8 @@
             document.getElementById('r-total').innerText = '₹' + fare.toFixed(2);
         }
 
-        function shareToOwner() {
-            let msg = `*OFFICIAL TRIP REPORT*%0A--------------------------%0A*Pickup:* ${startTime}%0A*Drop:* ${endTime}%0A--------------------------%0A*KM Travelled:* ${distance.toFixed(2)} KM%0A*Wait Timing:* ${Math.floor(waitMins)} MIN%0A--------------------------%0A*TOTAL BILL: ₹${fare.toFixed(2)}*`;
+        function shareTripDetails() {
+            let msg = `*TRIP DETAILS - COMPLETED*%0A--------------------------%0A*Pickup:* ${startTime}%0A*Drop:* ${endTime}%0A--------------------------%0A*KM Travelled:* ${distance.toFixed(2)} KM%0A*Wait Timing:* ${Math.floor(waitMins)} MIN%0A--------------------------%0A*TOTAL BILL: ₹${fare.toFixed(2)}*`;
             window.open(`https://wa.me/919043743777?text=${msg}`, '_blank');
         }
 
@@ -180,7 +181,6 @@
             document.getElementById('wait').innerText = Math.floor(waitMins);
         }
         
-        // Needed to load voices properly on some devices
         window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
     </script>
 </body>
