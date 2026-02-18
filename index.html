@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Meter Pro</title>
+    <title>Taxi Meter Pro - Coimbatore</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
 
@@ -20,7 +20,7 @@
             min-height: 100vh;
         }
         
-        /* WHITE HEADER FOR THE LOGO IMAGE */
+        /* WHITE HEADER BOX FOR LOGO */
         .header { 
             width: 100%; 
             background: var(--white); 
@@ -33,11 +33,12 @@
         }
         
         .header img {
-            height: 60px; /* Sized perfectly for your new logos */
+            height: 60px;
             width: auto;
             object-fit: contain;
         }
 
+        /* MAIN METER CARD */
         .card { 
             background: var(--white); 
             border-radius: 28px; 
@@ -57,10 +58,12 @@
         .val { font-size: 32px; font-weight: 800; color: #111827; }
         .unit { font-size: 14px; color: #6B7280; font-weight: 600; margin-left: 4px; }
 
+        /* SPEED AND TARIFF BOXES */
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 92%; max-width: 400px; margin-top: 15px; }
         .info-box { background: var(--white); border-radius: 18px; padding: 18px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .val-text { font-size: 24px; font-weight: 800; color: #111827; }
 
+        /* START/STOP BUTTON */
         .btn-container { width: 100%; position: fixed; bottom: 30px; display: flex; justify-content: center; }
         .btn { 
             width: 92%; 
@@ -108,17 +111,18 @@
         const brand = params.get('brand') || 'get';
         const tType = params.get('t') || '1';
 
-        // Updated to use your exact filenames
+        // LOGO SELECTION LOGIC
         const logoImg = document.getElementById('logo-img');
         if(brand === 'red') {
-            logoImg.src = "1000654314.png"; 
+            logoImg.src = "red-taxi.png"; 
         } else {
-            logoImg.src = "1000654313.png"; 
+            logoImg.src = "get-taxi.png"; 
         }
 
-        let config = { base: 80, rate: 25, label: "Local 80/25" };
-        if(tType === '2') config = { base: 100, rate: 25, label: "Local 100/25" };
-        if(tType === '3') config = { base: 80, rate: 27, label: "Local 80/27" };
+        // TARIFF SELECTION LOGIC
+        let config = { base: 80, rate: 25, label: "80 + 25" };
+        if(tType === '2') config = { base: 100, rate: 25, label: "100 + 25" };
+        if(tType === '3') config = { base: 80, rate: 27, label: "80 + 27" };
         document.getElementById('tariff-name').innerText = config.label;
 
         function toggleTrip() {
@@ -141,10 +145,11 @@
                 document.getElementById('speed').innerHTML = `${(p.coords.speed * 3.6 || 0).toFixed(1)} <span style="font-size: 12px; color: #6B7280;">km/h</span>`;
                 updateUI();
             }, null, {enableHighAccuracy: true});
+            
             waitTimer = setInterval(() => {
                 if(lastPos && (lastPos.coords.speed < 0.3 || lastPos.coords.speed === null)) {
                     waitSecs++;
-                    fare += (2 / 60); 
+                    fare += (2 / 60); // ₹2 per minute
                     updateUI();
                 }
             }, 1000);
