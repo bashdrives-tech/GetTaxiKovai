@@ -10,7 +10,6 @@
         
         body { font-family: 'Outfit', sans-serif; background-color: var(--white); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        /* LAYOUT REMAINS EXACTLY AS MASTER 1 */
         .header { width: 100%; background: var(--white); padding: 25px 0; display: flex; justify-content: center; align-items: center; }
         .header img { height: 60px; width: auto; }
         .separator { width: 100%; height: 4px; display: flex; }
@@ -96,17 +95,16 @@
         if(tType === '2') config = { base: 100, rate: 25 }; 
         if(tType === '3') config = { base: 80, rate: 27 }; 
 
-        // THE NATURAL GOOGLE CLOUD VOICE LOGIC
         function speakTamil(amount) {
             window.speechSynthesis.cancel();
             
-            // PLAYING THE DIGITAL 'TING' CHIME
+            // DIGITAL CHIME
             const context = new (window.AudioContext || window.webkitAudioContext)();
             const osc = context.createOscillator();
             const gain = context.createGain();
             osc.connect(gain);
             gain.connect(context.destination);
-            osc.frequency.value = 880; // High quality chime freq
+            osc.frequency.value = 880;
             gain.gain.setValueAtTime(0, context.currentTime);
             gain.gain.linearRampToValueAtTime(0.1, context.currentTime + 0.01);
             gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.5);
@@ -114,20 +112,21 @@
             osc.stop(context.currentTime + 0.5);
 
             setTimeout(() => {
-                const tamilText = `நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் செல்போன் மற்றும் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இந்த நாள் இனிய நாளாக அமையட்டும்!`;
+                const tamilText = `நன்றி. உங்கள் கட்டணம் ${Math.floor(amount)} ரூபாய். இறங்குவதற்கு முன் உங்கள் உடைமைகளைச் சரிபார்த்துக் கொள்ளவும். இந்த நாள் இனிய நாளாக அமையட்டும்!`;
                 const utterance = new SpeechSynthesisUtterance(tamilText);
                 const voices = window.speechSynthesis.getVoices();
 
-                // Search for the high-quality Google Natural Voice
+                // STRICT SEARCH FOR GOOGLE NATURAL VOICE
                 const naturalVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('ta')) || 
+                                   voices.find(v => v.name.includes('Natural') && v.lang.includes('ta')) ||
                                    voices.find(v => v.lang.includes('ta')) || voices[0];
 
                 utterance.voice = naturalVoice;
                 utterance.lang = 'ta-IN';
-                utterance.pitch = 1.05; 
-                utterance.rate = 0.92; // Slightly slower for warmth
+                utterance.pitch = 1.0; 
+                utterance.rate = 0.85; // Keeping it slow as you liked
                 window.speechSynthesis.speak(utterance);
-            }, 600); // Small delay after the chime
+            }, 700);
         }
 
         function toggleTrip() {
@@ -136,7 +135,6 @@
                 startTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 document.getElementById('mainBtn').innerText = "Stop Trip";
                 startTracking();
-                setInterval(updateLiveWaiting, 1000);
             } else { finishTrip(); }
         }
 
@@ -162,28 +160,27 @@
             window.open(`https://wa.me/919043743777?text=${msg}`, '_blank');
         }
 
-        function updateLiveWaiting() {
-            if(active) {
-                let now = Date.now();
-                let elapsed = (now - (lastTime || now)) / 60000;
-                if(!lastPos || lastPos.coords.speed < 0.5) {
-                    waitMins += elapsed; fare += (elapsed * 2);
-                    lastTime = now; updateUI();
-                }
-            }
-        }
-
         function startTracking() {
             geoWatch = navigator.geolocation.watchPosition(p => {
                 let now = Date.now();
                 if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
-                    if (d > 0.015) { distance += d; fare += (d * config.rate); }
+                    let elapsedMins = (now - lastTime) / 60000;
+
+                    if (p.coords.speed < 0.5 || d < 0.005) {
+                        // ACCURATE WAITING: Only add if standing still
+                        waitMins += elapsedMins;
+                        fare += (elapsedMins * 2); 
+                    } else if (d > 0.01) {
+                        // MOVING: Add distance fare
+                        distance += d;
+                        fare += (d * config.rate);
+                    }
                 }
                 lastPos = p; lastTime = now;
                 document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
                 updateUI();
-            }, null, {enableHighAccuracy: true});
+            }, null, {enableHighAccuracy: true, maximumAge: 1000});
         }
 
         function calcDist(la1, lo1, la2, lo2) {
