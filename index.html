@@ -86,8 +86,8 @@
         let active = false, distance = 0, fare = 0, waitSeconds = 0;
         let geoWatch, lastPos, liveInterval, startTime, endTime;
         
-        // CORRECTION FACTOR: 1.17 converts 8.5km app reading to 10km car reading
-        const CORRECTION_FACTOR = 1.17;
+        // REDUCED FACTOR: Changed from 1.12 to 0.98 to fix the over-reporting issue
+        const CORRECTION_FACTOR = 0.98;
 
         const params = new URLSearchParams(window.location.search);
         const brand = params.get('brand') || 'get';
@@ -109,8 +109,7 @@
         }
 
         function updateWaitingLogic() {
-            // Sensitivity improved: Car is "waiting" only if speed is very low
-            if (!lastPos || (lastPos.coords.speed || 0) < 0.2) {
+            if (!lastPos || (lastPos.coords.speed || 0) < 0.3) {
                 waitSeconds++;
                 if (waitSeconds > 0 && waitSeconds % 60 === 0) {
                     fare += 2;
@@ -165,13 +164,14 @@
 
         function startTracking() {
             geoWatch = navigator.geolocation.watchPosition(p => {
-                // REMOVED THE SPEED LIMITER: Distance now calculates regardless of speed 
-                // to fix the "slow car/wrong distance" issue.
                 if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
                     
-                    // Filter out GPS "noise" (less than 2 meters) or "teleportation" errors (over 500 meters)
-                    if (d > 0.002 && d < 0.5) {
+                    // Fixed logic: Ignore pings with accuracy worse than 40m
+                    if (p.coords.accuracy > 40) return;
+
+                    // Filter: Only count movement between 6 meters and 250 meters per ping
+                    if (d > 0.006 && d < 0.25) {
                         let calibratedDist = d * CORRECTION_FACTOR;
                         distance += calibratedDist; 
                         fare += (calibratedDist * config.rate); 
@@ -180,7 +180,7 @@
                 lastPos = p;
                 document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
                 updateUI();
-            }, null, {enableHighAccuracy: true, maximumAge: 0});
+            }, null, {enableHighAccuracy: true, maximumAge: 1000});
         }
 
         function calcDist(la1, lo1, la2, lo2) {
