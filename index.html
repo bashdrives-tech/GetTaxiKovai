@@ -86,8 +86,8 @@
         let active = false, distance = 0, fare = 0, waitSeconds = 0;
         let geoWatch, lastPos, liveInterval, startTime, endTime;
         
-        // REDUCED FACTOR: Changed from 1.12 to 0.98 to fix the over-reporting issue
-        const CORRECTION_FACTOR = 0.98;
+        // TUNED FACTOR: Changed to 1.09 to scale 9.18km up to 10km car reading
+        const CORRECTION_FACTOR = 1.09;
 
         const params = new URLSearchParams(window.location.search);
         const brand = params.get('brand') || 'get';
@@ -167,11 +167,10 @@
                 if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
                     
-                    // Fixed logic: Ignore pings with accuracy worse than 40m
                     if (p.coords.accuracy > 40) return;
 
-                    // Filter: Only count movement between 6 meters and 250 meters per ping
-                    if (d > 0.006 && d < 0.25) {
+                    // Filter: Optimized to 0.003 to catch turns better while avoiding jitter
+                    if (d > 0.003 && d < 0.25) {
                         let calibratedDist = d * CORRECTION_FACTOR;
                         distance += calibratedDist; 
                         fare += (calibratedDist * config.rate); 
