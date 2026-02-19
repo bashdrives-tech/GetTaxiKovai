@@ -86,6 +86,9 @@
         let active = false, distance = 0, fare = 0, waitSeconds = 0;
         let geoWatch, lastPos, liveInterval, startTime, endTime;
         
+        // CORRECTION FACTOR: 1.17 converts 8.5km app reading to 10km car reading
+        const CORRECTION_FACTOR = 1.17;
+
         const params = new URLSearchParams(window.location.search);
         const brand = params.get('brand') || 'get';
         const tType = params.get('t') || '1';
@@ -106,10 +109,9 @@
         }
 
         function updateWaitingLogic() {
-            // Check if car is stopped
-            if (!lastPos || (lastPos.coords.speed || 0) < 0.6) {
+            // Sensitivity improved: Car is "waiting" only if speed is very low
+            if (!lastPos || (lastPos.coords.speed || 0) < 0.2) {
                 waitSeconds++;
-                // ONLY JUMP ₹2 AFTER EXACTLY 60 SECONDS
                 if (waitSeconds > 0 && waitSeconds % 60 === 0) {
                     fare += 2;
                 }
@@ -126,19 +128,16 @@
             endTime = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             navigator.geolocation.clearWatch(geoWatch);
             
-            // 1. PLAY GREETING
             let audioStart = new Audio('start.mp3');
-            audioStart.play().catch(e => console.log("Audio play blocked by browser"));
+            audioStart.play().catch(e => console.log("Audio play blocked"));
 
             audioStart.onended = function() {
-                // 2. SPEAK PRICE IN ENGLISH
                 let amountSpeech = new SpeechSynthesisUtterance(Math.floor(fare) + " Rupees");
                 amountSpeech.lang = 'en-IN';
                 amountSpeech.rate = 0.9; 
                 window.speechSynthesis.speak(amountSpeech);
 
                 amountSpeech.onend = function() {
-                    // 3. PLAY BLESSING
                     let audioEnd = new Audio('end.mp3');
                     audioEnd.play();
                 };
@@ -166,17 +165,22 @@
 
         function startTracking() {
             geoWatch = navigator.geolocation.watchPosition(p => {
-                if(lastPos && (p.coords.speed || 0) >= 0.6) {
+                // REMOVED THE SPEED LIMITER: Distance now calculates regardless of speed 
+                // to fix the "slow car/wrong distance" issue.
+                if(lastPos) {
                     let d = calcDist(lastPos.coords.latitude, lastPos.coords.longitude, p.coords.latitude, p.coords.longitude);
-                    if (d > 0.005) {
-                        distance += d; 
-                        fare += (d * config.rate); // Driving fare increases LIVE
+                    
+                    // Filter out GPS "noise" (less than 2 meters) or "teleportation" errors (over 500 meters)
+                    if (d > 0.002 && d < 0.5) {
+                        let calibratedDist = d * CORRECTION_FACTOR;
+                        distance += calibratedDist; 
+                        fare += (calibratedDist * config.rate); 
                     }
                 }
                 lastPos = p;
                 document.getElementById('speed').innerText = (p.coords.speed * 3.6 || 0).toFixed(1);
                 updateUI();
-            }, null, {enableHighAccuracy: true});
+            }, null, {enableHighAccuracy: true, maximumAge: 0});
         }
 
         function calcDist(la1, lo1, la2, lo2) {
